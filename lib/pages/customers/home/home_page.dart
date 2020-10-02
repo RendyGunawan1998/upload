@@ -1,6 +1,7 @@
 import 'package:baru_nih/models/application/data_gaji.dart';
 import 'package:baru_nih/pages/customers/account/blocs/bloc.dart';
 import 'package:baru_nih/pages/customers/account/blocs/bloc_state.dart';
+import 'package:baru_nih/pages/customers/account/blocs/index.dart';
 import 'package:baru_nih/providers/api.dart';
 import 'package:baru_nih/utils/my_import.dart';
 import 'package:baru_nih/widgets/errors/loaddata_error.dart';
@@ -17,11 +18,8 @@ import 'package:baru_nih/utils/routes.dart';
 import 'package:baru_nih/models/application/user_info.dart';
 import 'package:baru_nih/widgets/diagonally_cut_colored_image.dart';
 
-
-
 class HomePage extends StatefulWidget {
   final VoidCallback onSignedOut;
-
 
   HomePage({Key key, this.onSignedOut}) : super(key: key);
 
@@ -41,8 +39,6 @@ class _HomePageState extends State<HomePage> {
   String _bulan = "";
   String _tahun = "";
   String _bulanTahun = "";
-
-
 
   void initState() {
     super.initState();
@@ -69,59 +65,49 @@ class _HomePageState extends State<HomePage> {
     }).toList();
   }
 
-  Widget _getData(BuildContext context){
-    return Scaffold(
-      body: new Container(
-        child: ListView(
-          children: <Widget>[
-            BlocBuilder(
-                bloc: _accountBloc,
-                builder: (BuildContext context, AccountBlocState state){
-                  if (state is AccountUninitialized) {
-                    return CustomCircularProgressIndicator();
-                  }
-                  if (state is AccountDataError) {
-                    return LoadDataError(
-                      title: allTranslations.text("problem_occurred"),
-                      subtitle:
-                      allTranslations.text("something_went_wrong"),
-                      bgColor: MyColors.menuDeals,
-                    );
-                  }
-                  if (state is AccountDataLoaded) {
-                    if (state.dataList.nrp == null) {
-                      return NoDataWidget(
-                        title: allTranslations.text("no_data"),
-                        subTitle: allTranslations.text("no_data_found"),
-                      );
-                    }
-                    return _getDrawer(context, state.dataList);
-                  }
-                }
-            ),
-          ],
-        ),
-      ),
+  Widget _getDrawer() {
+    return Drawer(
+      child: _getData(),
     );
   }
 
-  Widget _getDrawer(BuildContext context,data){
-    return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          children: <Widget>[
-            _buildHeader(context, data),
-            InkWell(
-              onTap: (){
-                Navigator.push(context, MaterialPageRoute(builder: (context)=> new AccountPage()));
-              },
-              child: ListTile(
-                title: Text('My Account'),
-                leading: Icon(Icons.person,
-                  color: Colors.black87,),
+  Widget _getData() {
+    return BlocBuilder(
+      bloc: _accountBloc..dispatch(AccountFetch()), // // panggil bloc get data
+      builder: (context, state) {
+        if (state is AccountDataError) {
+          return LoadDataError(
+            title: allTranslations.text("problem_occurred"),
+            subtitle: allTranslations.text("something_went_wrong"),
+            bgColor: MyColors.menuDeals,
+          );
+        }
+        if (state is AccountDataLoaded) {
+          if (state.dataList.nrp == null) {
+            return NoDataWidget(
+              title: allTranslations.text("no_data"),
+              subTitle: allTranslations.text("no_data_found"),
+            );
+          }
+          return ListView(
+            children: <Widget>[
+              _buildHeader(context, state.dataList),
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => new AccountPage()));
+                },
+                child: ListTile(
+                  title: Text('My Account'),
+                  leading: Icon(
+                    Icons.person,
+                    color: Colors.black87,
+                  ),
+                ),
               ),
-            ),
-            /* InkWell(
+              /* InkWell(
               onTap: (){},
               child: ListTile(
                 title: Text('Option 2'),
@@ -129,32 +115,36 @@ class _HomePageState extends State<HomePage> {
                   color: Colors.blue,),
               ),
             ),*/
-            Divider(height: 185),
-            InkWell(
-              onTap://goChangePassword
-                  () {
-                print("_goChangePassword");
-                Navigator.of(context).pushNamed(CHANGE_PASSWORD_SCREEN);
-              },
-              child: ListTile(
-                title: Text('Change Password'),
-                leading: Icon(Icons.lock_open,
-                  color: Colors.blue,),
+              Divider(height: 185),
+              InkWell(
+                onTap: //goChangePassword
+                    () {
+                  print("_goChangePassword");
+                  Navigator.of(context).pushNamed(CHANGE_PASSWORD_SCREEN);
+                },
+                child: ListTile(
+                  title: Text('Change Password'),
+                  leading: Icon(
+                    Icons.lock_open,
+                    color: Colors.blue,
+                  ),
+                ),
               ),
-            ),
-            InkWell(
-              onTap: (){
-                print("_goChangesLog");
-                Navigator.of(context).pushNamed(CHANGES_LOG_SCREEN);
-              },
-              child: ListTile(
-                title: Text('Change Log'),
-                leading: Icon(Icons.info,
-                  color: Colors.grey,),
+              InkWell(
+                onTap: () {
+                  print("_goChangesLog");
+                  Navigator.of(context).pushNamed(CHANGES_LOG_SCREEN);
+                },
+                child: ListTile(
+                  title: Text('Change Log'),
+                  leading: Icon(
+                    Icons.info,
+                    color: Colors.grey,
+                  ),
+                ),
               ),
-            ),
-            Divider(thickness: 1),
-            /* InkWell(
+              Divider(thickness: 1),
+              /* InkWell(
               onTap: (){
                 Navigator.push(context, MaterialPageRoute(builder:(context)=> new LanguageSelectorIconButton()));
               },
@@ -164,20 +154,23 @@ class _HomePageState extends State<HomePage> {
                   color: Colors.grey,),
               ),
             ),*/
-            InkWell(
-              onTap: (){},
-              child: ListTile(
-                title: Text('Log Out'),
-                leading: Icon(Icons.power_settings_new,
-                  color: Colors.grey,),
+              InkWell(
+                onTap: () {},
+                child: ListTile(
+                  title: Text('Log Out'),
+                  leading: Icon(
+                    Icons.power_settings_new,
+                    color: Colors.grey,
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          );
+        }
+        return CustomCircularProgressIndicator();
+      },
     );
   }
-
 
   Widget _buildHeader(BuildContext context, UserInfo data) {
     return Stack(
@@ -195,7 +188,6 @@ class _HomePageState extends State<HomePage> {
       ],
     );
   }
-
 
   Widget _buildCardProfile(UserInfo data) {
     return Padding(
@@ -241,7 +233,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
   @override
   void dispose() {
     _disposeBloc();
@@ -255,60 +246,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       key: _scaffoldKey,
       resizeToAvoidBottomPadding: true,
       appBar: HomeAppBar(),
-      drawer: new Drawer(
-        child: ListView(
-          children: <Widget>[
-            //Card(child: _buildCardProfile(data)),
-            //_buildHeader( context,dataList),
-            //block builder
-            /* BlocBuilder(
-              bloc: _accountBloc,
-                builder: (BuildContext context, AccountBlocState state){
-                  if (state is AccountUninitialized) {
-                    return CustomCircularProgressIndicator();
-                  }
-                  if (state is AccountDataError) {
-                    return LoadDataError(
-                      title: allTranslations.text("problem_occurred"),
-                      subtitle:
-                      allTranslations.text("something_went_wrong"),
-                      bgColor: MyColors.menuDeals,
-                    );
-                  }
-                  if (state is AccountDataLoaded) {
-                    if (state.dataList.nrp == null) {
-                      return NoDataWidget(
-                        title: allTranslations.text("no_data"),
-                        subTitle: allTranslations.text("no_data_found"),
-                      );
-                    }
-                    return _buildHeader(context, state.dataList);
-                  }
-                }
-            ),*/
-            /*new UserAccountsDrawerHeader(
-              accountName: Text('User_Account '),
-              accountEmail: Text('User_Email@gmail.com'),
-              currentAccountPicture: GestureDetector(
-                child: new CircleAvatar(
-                  backgroundColor: Colors.grey,
-                  child: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              decoration: new BoxDecoration(color: Colors.red),
-            ),*/
-
-          ],
-        ),
-      ),
+      drawer: _getDrawer(),
       body: _buildBody(),
       backgroundColor: Colors.white60,
       bottomNavigationBar: _bottomAppBarContents(),
@@ -417,176 +359,181 @@ class _HomePageState extends State<HomePage> {
   Widget _buildFilterBottomSheet() {
     return StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
-          return Container(
-            padding: EdgeInsets.only(left: 16.0, right: 16.0),
-            height: 310.0,
-            decoration: BoxDecoration(
-              //-------------------------------------box setelah button fitter--------------------------------------------
+      return Container(
+        padding: EdgeInsets.only(left: 16.0, right: 16.0),
+        height: 310.0,
+        decoration: BoxDecoration(
+            //-------------------------------------box setelah button fitter--------------------------------------------
 
-                borderRadius: BorderRadius.circular(4.0), color: Colors.white38),
-            child: Column(children: <Widget>[
-              Icon(
-                Icons.drag_handle,
-                color: Colors.grey.shade400,
+            borderRadius: BorderRadius.circular(4.0),
+            color: Colors.white38),
+        child: Column(children: <Widget>[
+          Icon(
+            Icons.drag_handle,
+            color: Colors.grey.shade400,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  allTranslations.text("filter"),
+                  style: TextStyle(fontSize: 18.0),
+                ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(
-                      allTranslations.text("filter"),
-                      style: TextStyle(fontSize: 18.0),
-                    ),
-                  ),
-                  FlatButton(
-                    color: Colors.transparent,
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Icon(Icons.arrow_forward,
-                      color: Colors.green,
-                      //style: TextStyle(fontSize: 20.0),
-                      //------------------------------------------------------------button close di dalam filter----------------------------------
+              FlatButton(
+                color: Colors.transparent,
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Icon(
+                  Icons.arrow_forward,
+                  color: Colors.green,
+                  //style: TextStyle(fontSize: 20.0),
+                  //------------------------------------------------------------button close di dalam filter----------------------------------
 
-                      //allTranslations.text("close"),
-                      //style: TextStyle(color: MyColors.green),
-                    ),
-                  ),
-                ],
+                  //allTranslations.text("close"),
+                  //style: TextStyle(color: MyColors.green),
+                ),
               ),
-              // SizedBox(height: 10.0),
-              Divider(thickness: 1),
-              Container(
-                //--------------------------------------------------------------menu tahun dan bulan -------------------------------------------
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
+            ],
+          ),
+          // SizedBox(height: 10.0),
+          Divider(thickness: 1),
+          Container(
+            //--------------------------------------------------------------menu tahun dan bulan -------------------------------------------
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Container(
-                          width:MediaQuery.of(context).size.width*0.45,
-                          //padding: EdgeInsets.only(bottom: 0),
-                          child: DropDownFormField(
-                            titleText: allTranslations.text("year"),
-                            hintText: allTranslations.text("select_year_hint"),
-                            value: _tahun,
-                            // onSaved: (value) {
-                            //   setState(() {
-                            //     _tahun = value;
-                            //   });
-                            // },
-                            onChanged: (value) {
-                              setState(() {
-                                _tahun = value;
-                              });
-                            },
-                            dataSource: years,
-                            textField: 'display',
-                            valueField: 'value',
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.all(0),
-                          width : MediaQuery.of(context).size.width*0.45,
-                          child: DropDownFormField(
-                            titleText: allTranslations.text("month"),
-                            hintText: allTranslations.text("select_month_hint"),
-                            value: _bulan,
-                            // onSaved: (value) {
-                            //   setState(() {
-                            //     _bulan = value;
-                            //   });
-                            // },
-                            onChanged: (value) {
-                              setState(() {
-                                _bulan = value;
-                              });
-                            },
-                            dataSource: [
-                              {
-                                "display": "Januari",
-                                "value": "01",
-                              },
-                              {
-                                "display": "Februari",
-                                "value": "02",
-                              },
-                              {
-                                "display": "Maret",
-                                "value": "03",
-                              },
-                              {
-                                "display": "April",
-                                "value": "04",
-                              },
-                              {
-                                "display": "Mei",
-                                "value": "05",
-                              },
-                              {
-                                "display": "Juni",
-                                "value": "06",
-                              },
-                              {
-                                "display": "Juli",
-                                "value": "07",
-                              },
-                              {
-                                "display": "Agustus",
-                                "value": "08",
-                              },
-                              {
-                                "display": "September",
-                                "value": "09",
-                              },
-                              {
-                                "display": "Oktober",
-                                "value": "10",
-                              },
-                              {
-                                "display": "November",
-                                "value": "11",
-                              },
-                              {
-                                "display": "Desember",
-                                "value": "12",
-                              },
-                            ],
-                            textField: 'display',
-                            valueField: 'value',
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    new SizedBox(height: 40,),
-                    Text("You choose : $_bulan-$_tahun"),
-                    //SizedBox(height: 16),
                     Container(
-                      width: 100, // pake ini kalo error MediaQuery.of(context).size.width
-                      padding: EdgeInsets.all(8),
-                      child: RaisedButton(
-                        color: MyColors.lightYellow,
-                        child: Text(
-                          allTranslations.text("filter"),
-                          style: TextStyle(
-                            fontSize: 16,
-                          ),
-                        ),
-                        onPressed: () {
-                          _saveFilter();
-                          Navigator.pop(context);
+                      width: MediaQuery.of(context).size.width * 0.45,
+                      //padding: EdgeInsets.only(bottom: 0),
+                      child: DropDownFormField(
+                        titleText: allTranslations.text("year"),
+                        hintText: allTranslations.text("select_year_hint"),
+                        value: _tahun,
+                        // onSaved: (value) {
+                        //   setState(() {
+                        //     _tahun = value;
+                        //   });
+                        // },
+                        onChanged: (value) {
+                          setState(() {
+                            _tahun = value;
+                          });
                         },
+                        dataSource: years,
+                        textField: 'display',
+                        valueField: 'value',
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(0),
+                      width: MediaQuery.of(context).size.width * 0.45,
+                      child: DropDownFormField(
+                        titleText: allTranslations.text("month"),
+                        hintText: allTranslations.text("select_month_hint"),
+                        value: _bulan,
+                        // onSaved: (value) {
+                        //   setState(() {
+                        //     _bulan = value;
+                        //   });
+                        // },
+                        onChanged: (value) {
+                          setState(() {
+                            _bulan = value;
+                          });
+                        },
+                        dataSource: [
+                          {
+                            "display": "Januari",
+                            "value": "01",
+                          },
+                          {
+                            "display": "Februari",
+                            "value": "02",
+                          },
+                          {
+                            "display": "Maret",
+                            "value": "03",
+                          },
+                          {
+                            "display": "April",
+                            "value": "04",
+                          },
+                          {
+                            "display": "Mei",
+                            "value": "05",
+                          },
+                          {
+                            "display": "Juni",
+                            "value": "06",
+                          },
+                          {
+                            "display": "Juli",
+                            "value": "07",
+                          },
+                          {
+                            "display": "Agustus",
+                            "value": "08",
+                          },
+                          {
+                            "display": "September",
+                            "value": "09",
+                          },
+                          {
+                            "display": "Oktober",
+                            "value": "10",
+                          },
+                          {
+                            "display": "November",
+                            "value": "11",
+                          },
+                          {
+                            "display": "Desember",
+                            "value": "12",
+                          },
+                        ],
+                        textField: 'display',
+                        valueField: 'value',
                       ),
                     ),
                   ],
                 ),
-              )
-            ]),
-          );
-        });
+
+                new SizedBox(
+                  height: 40,
+                ),
+                Text("You choose : $_bulan-$_tahun"),
+                //SizedBox(height: 16),
+                Container(
+                  width:
+                      100, // pake ini kalo error MediaQuery.of(context).size.width
+                  padding: EdgeInsets.all(8),
+                  child: RaisedButton(
+                    color: MyColors.lightYellow,
+                    child: Text(
+                      allTranslations.text("filter"),
+                      style: TextStyle(
+                        fontSize: 16,
+                      ),
+                    ),
+                    onPressed: () {
+                      _saveFilter();
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          )
+        ]),
+      );
+    });
   }
 
   void setBulanTahun(String year, String month) {
@@ -617,7 +564,8 @@ class MyTabs extends SliverPersistentHeaderDelegate {
   MyTabs(this.size);
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     // double width = MediaQuery.of(context).size.width;
     return Container(
       // alignment: Alignment.center,
@@ -633,16 +581,16 @@ class MyTabs extends SliverPersistentHeaderDelegate {
         tabs: <Widget>[
           Tab(
             child: Container(
-              // width: width * 0.5,
-              // color: Colors.brown,
+                // width: width * 0.5,
+                // color: Colors.brown,
                 child: Text(
-                  "Gaji".toUpperCase(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                )),
+              "Gaji".toUpperCase(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            )),
           ),
           Tab(
             icon: Container(

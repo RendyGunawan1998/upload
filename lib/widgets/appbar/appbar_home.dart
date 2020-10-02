@@ -14,7 +14,7 @@ class HomeAppBar extends AppBar {
   static Widget _buildAppBar(VoidCallback _onTap) {
     return new Container(
       color: Colors.orangeAccent,
-      padding: EdgeInsets.only(left: 16.0, right: 16.0),
+      padding: EdgeInsets.only(left: 40.0, right: 16.0),
       child: new Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
