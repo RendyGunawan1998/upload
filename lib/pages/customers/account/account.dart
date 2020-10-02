@@ -238,6 +238,7 @@ class _AccountPageState extends State<AccountPage> {
               suffixIconColor: MyColors.white,
               onTap: _goLogout,
             ),
+            //============================== CLOSE HERE =========================
           ],
         ),
       ),

@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:baru_nih/providers/auth_provider.dart';
+import 'package:baru_nih/utils/routes.dart';
 import 'package:package_info/package_info.dart';
 import 'package:baru_nih/pages/customers/account/account.dart';
 import 'package:baru_nih/pages/customers/home/home_page.dart';
@@ -13,6 +15,8 @@ import 'package:baru_nih/pages/xroot/rootPage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import 'package:baru_nih/pages/change-languages/language_selector_icon_button.dart';
 
 String timestamp() => new DateTime.now().toString();
 
@@ -33,6 +37,8 @@ class TabPageCustomer extends StatefulWidget {
 class _TabPageCustomerState extends State<TabPageCustomer> {
   AuthStatus authStatus = AuthStatus.signedIn;
   DateTime currentBackPressTime = DateTime.now();
+
+  bool isLoading = false;
 
   int _currentTabIndex = 0;
   final Key keyTab1 = PageStorageKey('tab1');
@@ -297,6 +303,112 @@ class _TabPageCustomerState extends State<TabPageCustomer> {
             }),
       ),
     );
+  }
+
+  Widget _kiri(){
+    return Scaffold(
+      drawer: new Drawer(
+        child: ListView(
+          children: <Widget>[
+            new UserAccountsDrawerHeader(
+              accountName: Text('User_Account '),
+              accountEmail: Text('User_Email@gmail.com'),
+              currentAccountPicture: GestureDetector(
+                child: new CircleAvatar(
+                  backgroundColor: Colors.grey,
+                  child: Icon(
+                    Icons.person,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              decoration: new BoxDecoration(color: Colors.red),
+            ),
+            InkWell(
+              onTap: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> new AccountPage()));
+              },
+              child: ListTile(
+                title: Text('My Account'),
+                leading: Icon(Icons.lock_open,
+                  color: Colors.blue,),
+              ),
+            ),
+           /* InkWell(
+              onTap: (){},
+              child: ListTile(
+                title: Text('Option 2'),
+                leading: Icon(Icons.lock_open,
+                  color: Colors.blue,),
+              ),
+            ),*/
+            Divider(thickness: 1),
+            InkWell(
+              onTap: (){},
+              child: ListTile(
+                title: Text('Change Log'),
+                leading: Icon(Icons.info,
+                  color: Colors.grey,),
+              ),
+            ),
+            InkWell(
+              onTap: _goChangePassword,
+              child: ListTile(
+                title: Text('Change Password'),
+                leading: Icon(Icons.lock_open,
+                  color: Colors.blue,),
+              ),
+            ),
+            InkWell(
+              onTap: (){
+                Navigator.push(context, MaterialPageRoute(builder:(context)=> new LanguageSelectorIconButton()));
+              },
+              child: ListTile(
+                title: Text('Setting'),
+                leading: Icon(Icons.settings,
+                  color: Colors.grey,),
+              ),
+            ),
+            InkWell(
+              onTap: (){},
+              child: ListTile(
+                title: Text('Log Out'),
+                leading: Icon(Icons.power_settings_new,
+                  color: Colors.grey,),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _goChangePassword() {
+    print("_goChangePassword");
+    Navigator.of(context).pushNamed(CHANGE_PASSWORD_SCREEN);
+  }
+
+  void _showLoading(){
+    setState(() => isLoading=true);
+  }
+
+  void _dismissLoading(){
+    setState(() => isLoading=false);
+  }
+
+  Future<void> _goLogout() async{
+    try{
+      _showLoading();
+      var auth = AuthProvider.of(context).auth;
+      await auth.giveDelay(1000);
+      await auth.forceSignOut();
+      _dismissLoading();
+      print('Log Out');
+      widget.onSignedOut();
+    }catch(err){
+      print(err);
+      _dismissLoading();
+    }
   }
 
   void _forceLogout() async {
